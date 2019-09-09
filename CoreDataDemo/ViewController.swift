@@ -7,19 +7,36 @@
 //
 
 import UIKit
-import CoreData
+import RealmSwift
 
 class ViewController: UITableViewController {
     
-    private let cellID = "cell"
-    private var tasks: [Task] = []
-    private let managedContext = (
-        UIApplication.shared.delegate as! AppDelegate
-        )
-        .persistentContainer.viewContext
+    var tasks: [Task] = []
 
+    private let cellID = "cell"
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        //filling DB
+//        let firstTask = Task()
+//        firstTask.name = "Купить пива"
+//
+//        let secondTask = Task()
+//        secondTask.name = "Купить водки"
+//
+//        let thirdTask = Task()
+//        thirdTask.name = "Купить селедки"
+//
+//        tasks.append(firstTask)
+//        tasks.append(secondTask)
+//        tasks.append(thirdTask)
+//
+//        DispatchQueue.main.async {
+//            StorageManager.saveTask(task: firstTask)
+//            StorageManager.saveTask(task: secondTask)
+//            StorageManager.saveTask(task: thirdTask)
+//        }
         
         setupView()
         
@@ -143,67 +160,31 @@ extension ViewController {
     
     // Fetch data
     private func fetchData() {
-        let fetchRequest: NSFetchRequest<Task> = Task.fetchRequest() // Запрос выборки по ключу Task
         
-        do {
-            tasks = try managedContext.fetch(fetchRequest) // Заполнение массива данными из базы
-        } catch let error {
-            print("Failed to fetch data", error)
-        }
+        let realm = try! Realm()
+        let dataFromDB = realm.objects(Task.self)
+        
+        tasks = Array(dataFromDB)
+        
     }
     
     // Save data
     private func saveTask(_ taskName: String) {
         
-        guard let entity = NSEntityDescription.entity(
-            forEntityName: "Task",
-            in: managedContext
-            ) else { return } // Create entity
-        
-        let task = NSManagedObject(entity: entity,
-                                   insertInto: managedContext) as! Task // Task instace
-        task.name = taskName // New value for task name
-        
-        do {
-            try managedContext.save()
-            tasks.append(task)
-            tableView.insertRows(
-                at: [IndexPath(row: tasks.count - 1, section: 0)],
-                with: .automatic
-            )
-        } catch let error {
-            print("Failed to save task", error.localizedDescription)
-        }
+//
     }
     
     // Edit data
     private func editTask(_ task: Task, newName: String) {
-        do {
-            task.name = newName
-            try managedContext.save()
-        } catch let error {
-            print("Failed to save task", error)
-        }
+//
     }
     
     // Delete data
     private func deleteTask(_ task: Task, indexPath: IndexPath) {
-        
-        managedContext.delete(task)
-        
-        do {
-            try managedContext.save()
-            tasks.remove(at: indexPath.row)
-            tableView.deleteRows(at: [indexPath], with: .automatic)
-        } catch let error {
-            print("Error: \(error)")
-        }
-    }
 
 }
 
 // MARK: - Setup Alert Controller
-extension ViewController {
     
     private func showAlert(title: String,
                            message: String,
